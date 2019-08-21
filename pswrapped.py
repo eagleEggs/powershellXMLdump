@@ -1,73 +1,102 @@
 import xml.etree.ElementTree as et
-root = et.parse('ps_man_final.xml')
-root2 = root.getroot()
 import PySimpleGUIWeb as Sg
 
-dict = []
-mod = {}
-i = 0
 
-names = [[]] # psg list (GUI)
-detail_descriptions = [[]]
-descriptions = [[]]
-syntaxes = [[]]
-layout = [[]]
-dropdown_list = []
+class Posh(object):
+    def __init__(self, mod_file, command="None"):
+        self.root = et.parse(mod_file)  # 'ps_man_final.xml'
+        self.root2 = self.root.getroot()
+        i = 0
+        self.dict = []
+        mod = {}
+        self.mod = mod
+        self.pass_arg = None
+        self.mod_list = []
+        self.command = command
+        self.names = [[]]  # psg list (GUI)
+        self.detail_descriptions = [[]]
+        self.descriptions = [[]]
+        self.syntaxes = [[]]
+        self.layout = [[]]
+        self.dropdown_list = []
+        self.layout_finals = []
 
-for tag in root2.iter('helpItems'):
+        for tag in self.root2.iter('helpItems'):
 
-    # DETAILS
-    for commands in tag.iter('command'):
-        i = i + 1
-        details = commands.find('details')
-        # NAME
-        name = details.find('name')
-        #print(name.text)
-        # DETAILS DESCRIPTION
-        detail_description = details.find('description')
-        #print(detail_description.text)
-        # DESCRIPTION
-        description = commands.find('description')
-        #print(description.text)
-        # SYNTAX
-        syntax = commands.findall('syntax/syntaxItem/parameter/name')
-        syntax_list= []
-        for syntax_param in syntax:
-            #print(syntax_list.append(syntax_param.text))
-            syntax_list.append(syntax_param.text)
-        components = []
-        #dict.append(name.text)
-        modlist = []
-        modlist.append(detail_description.text)
-        modlist.append(description.text)
-        modlist.append(syntax_list)
+            # DETAILS
+            for commands in tag.iter('command'):
+                i = i + 1
+                self.details = commands.find('details')
+                # NAME
+                self.name = self.details.find('name')
+                # print(name.text)
+                # DETAILS DESCRIPTION
+                self.detail_description = self.details.find('description')
+                # print(detail_description.text)
+                # DESCRIPTION
+                self.description = commands.find('description')
+                # print(description.text)
+                # SYNTAX
+                self.syntax = commands.findall(
+                        'syntax/syntaxItem/parameter/name')
+                self.syntax_list = []
+                for syntax_param in self.syntax:
+                    # print(syntax_list.append(syntax_param.text))
+                    self.syntax_list.append(syntax_param.text)
+                components = []
+                # dict.append(name.text)
+                self.modlist = []
+                self.modlist.append(self.detail_description.text)
+                self.modlist.append(self.description.text)
+                self.modlist.append(self.syntax_list)
 
-        mods = {name.text:modlist}
-        mod.update(mods)
+                self.mods = {self.name.text: self.modlist}
+                self.mod.update(self.mods)
 
-        syns_list = []
-        dropdown_list.append(name.text)
+                syns_list = []
+                self.dropdown_list.append(self.name.text)
 
-        # for params in syntax_list:
-        #     syns_list.append(Sg.InputText("{}".format(params)))
-        # layout.append([Sg.Button("{}".format(name.text), key="{}".format(
-         #        name.text))])
-        # for x in syntax_list:
-        #     layout.append([Sg.InputText("{}".format(x))])
-        #PSG update:
+            self.layout_final = [[Sg.DropDown(self.dropdown_list,
+                                            enable_events=True)]]
 
-    layout_final = [[Sg.DropDown(dropdown_list, enable_events=True)]]
+            print("Total Modules: {}".format(i))
+            print(self.mod)
 
-    print("Total Modules: {}".format(i))
-    print(mod)
+            # self.test = self.mod.get('Add-Computer')
+            # print(self.test[2])
 
-    test = mod.get('Add-Computer')
-    print(test[2])
+    def reset(self):
+        self.layout_new = [[]]
+        self.layout = self.layout_new
+        self.layout_final_new = [[]]
+        self.layout_final = self.layout_final_new
+
+    # def __set__(self, command):
+        # pass
+        # self.command = command
+        #self.mod_list.append(command)
+
+    # def __get__(self):
+      #   pass
+        #return self.mod(self.command)
+
+    def ping(self, ping_target):
+        self.ping_target = ping_target
+        self.pass_arg = "ping {}".format(ping_target)
+
+    def poshit(self):
+        proc = subprocess.Popen(["powershell.exe", self.pass_arg],
+                                stdout=sys.stdout).communicate()
+
+
+
+
+launch = Posh('ps_man_final.xml')
 
 #for x in mod:
 #    layout.append([Sg.Button("{}".format(x))])
 
-mainWindow = Sg.Window("pswrapped", layout=layout_final).Finalize()
+mainWindow = Sg.Window("pswrapped", layout=launch.layout_final).Finalize()
 
 old_v = None
 
@@ -76,31 +105,35 @@ while True:
 
     if old_v != v:
         element = v
-        layout_new = [[]]
-        layout = layout_new
-        layout_final_new = [[]]
-        layout_final = layout_final_new
+        launch.layout_new = [[]]
+        launch.layout = launch.layout_new
+        launch.layout_final_new = [[]]
+        launch.layout_final = launch.layout_final_new
 
         print("Changing View...")
 
-        test = mod.get("{}".format(element[0]))
+        test = launch.mod.get("{}".format(element[0]))
 
-        try:
-            for x in test[2]:
-                layout.append([Sg.InputText("{}".format(str(x)))])
-        except:
-            pass
 
-        layout_finals = [[Sg.DropDown(dropdown_list, enable_events=True,
+        for x in test[2]:
+            launch.layout.append([Sg.InputText("{}".format(str(x)))])
+
+        launch.layout_finals = [[Sg.DropDown(launch.dropdown_list,
+                                       enable_events=True,
                                       default_value=v[0])],[Sg.Button(
                 "Execute", size=(25,1)),
-                         Sg.Column(layout_final), Sg.Column(layout)]]
-        mainWindow = Sg.Window("pswrapped", layout=layout_finals).Finalize()
+                         Sg.Column(launch.layout_final), Sg.Column(
+                    launch.layout)]]
+        mainWindow = Sg.Window("pswrapped",
+                               layout=launch.layout_finals).Finalize()
+
+
 
     print(v, old_v)
     old_v = v
 
-
+    if b == "Execute":
+        run = Posh()
 
     if b == "exit":
         quit()
