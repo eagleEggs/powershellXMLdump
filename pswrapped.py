@@ -96,40 +96,45 @@ launch = Posh('ps_man_final.xml')
 #for x in mod:
 #    layout.append([Sg.Button("{}".format(x))])
 
-mainWindow = Sg.Window("pswrapped", layout=launch.layout_final).Finalize()
+mainWindow = Sg.Window("pswrapped", size=(1000, 1000),
+    layout=launch.layout_final).Finalize()
 
-old_v = None
+old_v = ['ok', 'ok', 'ok']
+v = ['nope', 'nope', 'nope']
+
 
 while True:
     b, v = mainWindow.Read(timeout=100)
 
-    if old_v != v:
-        element = v
-        launch.layout_new = [[]]
-        launch.layout = launch.layout_new
-        launch.layout_final_new = [[]]
-        launch.layout_final = launch.layout_final_new
+    if old_v[0] != v[0] and old_v[0] is not None:
+            element = v
+            launch.layout_new = [[]]
+            launch.layout = launch.layout_new
+            launch.layout_final_new = [[]]
+            launch.layout_final = launch.layout_final_new
 
-        print("Changing View...")
+            print("Changing View...")
 
-        test = launch.mod.get("{}".format(element[0]))
+            test = launch.mod.get("{}".format(element[0]))
+
+            print(launch.mod.get("Add-Computer")[1])
+            for x in test[2]:
+                launch.layout.append([Sg.InputText("{}".format(str(x)))])
+
+            launch.layout_finals = [[Sg.DropDown(launch.dropdown_list,
+                                           enable_events=True,
+                                          default_value=v[0])],[Sg.Button(
+                    "Execute", size=(25,1)),
+                             Sg.Column(launch.layout_final), Sg.Column(
+                        launch.layout), Sg.Text(launch.mod.get("{"
+                                                                    "}".format(element[0]))[1], size=(800, 200), auto_size_text=True)]]
+            mainWindow = Sg.Window("pswrapped",
+                                   layout=launch.layout_finals).Finalize()
 
 
-        for x in test[2]:
-            launch.layout.append([Sg.InputText("{}".format(str(x)))])
 
-        launch.layout_finals = [[Sg.DropDown(launch.dropdown_list,
-                                       enable_events=True,
-                                      default_value=v[0])],[Sg.Button(
-                "Execute", size=(25,1)),
-                         Sg.Column(launch.layout_final), Sg.Column(
-                    launch.layout)]]
-        mainWindow = Sg.Window("pswrapped",
-                               layout=launch.layout_finals).Finalize()
-
-
-
-    print(v, old_v)
+    #print(v, old_v)
+    #print(v)
     old_v = v
 
     if b == "Execute":
