@@ -36,6 +36,14 @@ class Posh(object):
                 # DESCRIPTION
                 self.description = commands.find('description')
                 # print(description.text)
+                # EXAMPLES
+                self.examples = commands.findall('examples/example/code')
+                self.example_list = []
+                for example_items in self.examples:
+                    ex_list = []
+                    ex_list.append(example_items.text)
+                    self.example_list.append(ex_list)
+
                 # SYNTAX
                 self.syntax = commands.findall(
                         'syntax/syntaxItem/parameter/name')
@@ -49,6 +57,9 @@ class Posh(object):
                 self.modlist.append(self.detail_description.text)
                 self.modlist.append(self.description.text)
                 self.modlist.append(self.syntax_list)
+                self.modlist.append(self.example_list)
+
+                self.example_format_list = [[]]
 
                 self.mods = {self.name.text: self.modlist}
                 self.mod.update(self.mods)
@@ -124,10 +135,14 @@ while True:
             launch.layout_finals = [[Sg.DropDown(launch.dropdown_list,
                                            enable_events=True,
                                           default_value=v[0])],[Sg.Button(
-                    "Execute", size=(25,1)),
-                             Sg.Column(launch.layout_final), Sg.Column(
-                        launch.layout), Sg.Text(launch.mod.get("{"
-                                                                    "}".format(element[0]))[1], size=(800, 200), auto_size_text=True)]]
+                    "Execute", size=(25,1))],
+                             [Sg.Column(launch.layout_final), Sg.Column(
+                        launch.layout), Sg.Text(
+                        launch.mod.get("{}".format(element[0]))[1],
+                                     size=(800, 200), auto_size_text=True),
+                              Sg.DropDown(
+                                      launch.mod.get("{}".format(element[0]))[
+                                          3], key="dd_ex")]]
             mainWindow = Sg.Window("pswrapped",
                                    layout=launch.layout_finals).Finalize()
 
