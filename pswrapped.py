@@ -1,3 +1,4 @@
+import subprocess, sys
 import xml.etree.ElementTree as et
 import PySimpleGUIWeb as Sg
 
@@ -82,15 +83,6 @@ class Posh(object):
         self.layout_final_new = [[]]
         self.layout_final = self.layout_final_new
 
-    # def __set__(self, command):
-        # pass
-        # self.command = command
-        #self.mod_list.append(command)
-
-    # def __get__(self):
-      #   pass
-        #return self.mod(self.command)
-
     def ping(self, ping_target):
         self.ping_target = ping_target
         self.pass_arg = "ping {}".format(ping_target)
@@ -99,8 +91,31 @@ class Posh(object):
         proc = subprocess.Popen(["powershell.exe", self.pass_arg],
                                 stdout=sys.stdout).communicate()
 
+    def run(self, command, params):
+        print("Command: {}".format(command))
+        print("Params: {}".format(params))
+        scraped_params = []
+        scraped_string_init = "{}".format(command)
+        scraped_string = ""
 
-
+        scraped_list = []
+        pop_list = []
+        for k, v in params.items():
+            if v is "":
+                pop_list.append(k)
+        for i in pop_list:
+            del params[i]
+        print("ok?", params)
+        scraped_string = "{}".format(scraped_string_init)
+        for k, v in params.items():
+            scraped_string += " -{} {}".format(k, v)
+        print(scraped_string)
+        try:
+            proc = subprocess.Popen(["powershell.exe", command,
+                                     scraped_string],
+                                stdout=sys.stdout).communicate()
+        except:
+            pass
 
 launch = Posh('ps_man_final.xml')
 
@@ -129,22 +144,34 @@ while True:
             test = launch.mod.get("{}".format(element[0]))
 
             print(launch.mod.get("Add-Computer")[1])
-            for x in test[2]:
-                launch.layout.append([Sg.InputText("{}".format(str(x)))])
 
-            launch.layout_finals = [[Sg.DropDown(launch.dropdown_list,
+            input_list = []
+            for x in test[2]:
+                input_list.append(x)
+                launch.layout.append([Sg.InputText("{}".format(str(x)),
+                                                   key="{}".format(x))])
+
+
+            launch.layout_finals = [[Sg.Column([[Sg.DropDown(
+                    launch.dropdown_list,
                                            enable_events=True,
                                           default_value=v[0])],[Sg.Button(
-                    "Execute", size=(25,1))],
-                             [Sg.Column(launch.layout_final), Sg.Column(
-                        launch.layout), Sg.Text(
-                        launch.mod.get("{}".format(element[0]))[1],
-                                     size=(800, 200), auto_size_text=True),
-                              Sg.DropDown(
+                    "Execute", size=(25,1))]])],
+                             [Sg.Column(launch.layout_final)], [Sg.DropDown(
                                       launch.mod.get("{}".format(element[0]))[
-                                          3], key="dd_ex")]]
+                                          3], key="dd_ex")], [Sg.Column(
+                        launch.layout), Sg.Column([[Sg.Text(
+                        launch.mod.get("{}".format(element[0]))[1],
+                                     size=(800, 200), key="{}".format(element[0]),
+                    auto_size_text=True)]])],
+                    [Sg.Column([[Sg.Multiline("ok", key="ex_out", size=(500,
+                                                                   900))]])]]
+
             mainWindow = Sg.Window("pswrapped",
                                    layout=launch.layout_finals).Finalize()
+
+    ex_out = mainWindow.FindElement("dd_ex")
+    ex_ml = mainWindow.FindElement("ex_out")
 
 
 
@@ -152,8 +179,30 @@ while True:
     #print(v)
     old_v = v
 
+    if b == "dd_ex":
+        ex_out = mainWindow.FindElement("dd_ex")
+        ex_ml = mainWindow.FindElement("ex_out")
+        ex_out.Update(v[ex_ml])
+
     if b == "Execute":
-        run = Posh()
+        v_mod = []
+        v_mod.append(v)
+        print(v_mod)
+        input_list_final = []
+
+        v_mod_dict = {}
+
+        for i in input_list:
+            for k, v in v_mod[0].items():
+                if k in input_list:
+                    v_mod_dict[k] = v
+
+        print(v_mod_dict)
+
+
+        print("Sent to Exec: {}: {}".format(element[0], v_mod_dict))
+        launch.run(element[0], v_mod_dict)
+
 
     if b == "exit":
         quit()
@@ -163,3 +212,4 @@ while True:
 
     if b is None:
         break
+        
