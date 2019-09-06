@@ -12,4 +12,4 @@ Get-Help Data Dump for Powershell Modules with XML Conversion from MAML format..
 
 ## Screenshots:
 
-![anim1](https://github.com/eagleEggs/pswrapped/blob/master/screenShots/psw.png?)<br>
+![anim1](https://github.com/eagleEggs/pswrapped/blob/master/screenShots/pswrapped_ss1.png?)<br>
