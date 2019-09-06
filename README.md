@@ -9,3 +9,7 @@ Because it's funny I mean interesting. Waffles.
 
 ## How?
 Get-Help Data Dump for Powershell Modules with XML Conversion from MAML format...
+
+## Screenshots:
+
+![anim1](https://github.com/eagleEggs/pswrapped/blob/master/screenShots/psw.png?)<br>
